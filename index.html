@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroHabitat — L'Habitat du Futur</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #7CFFB2;
+  --green-dim: rgba(124, 255, 178, 0.15);
+  --green-glow: rgba(124, 255, 178, 0.4);
+  --dark: #090b0f;
+  --dark2: #0d1017;
+  --dark3: #111520;
+  --surface: #141820;
+  --surface2: #1a1f2e;
+  --text: #f0f0f0;
+  --muted: rgba(240,240,240,0.5);
+  --border: rgba(124, 255, 178, 0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: var(--green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s;
+  mix-blend-mode: screen;
+}
+
+.cursor-ring {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(124, 255, 178, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, width 0.3s, height 0.3s, border-color 0.3s;
+}
+
+.cursor-ring.hover {
+  width: 60px;
+  height: 60px;
+  border-color: var(--green);
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 9000;
+  opacity: 0.35;
+}
+
+/* NAVBAR */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 60px;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  transition: background 0.4s, backdrop-filter 0.4s, padding 0.4s;
+}
+
+nav.scrolled {
+  background: rgba(9, 11, 15, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 16px 60px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.nav-logo span {
+  color: var(--green);
+}
+
+nav ul {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+  align-items: center;
+}
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  position: relative;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--green);
+  transition: width 0.3s ease;
+}
+
+nav a:hover { color: var(--text); }
+nav a:hover::after { width: 100%; }
+
+.nav-cta {
+  padding: 10px 24px;
+  border: 1px solid var(--green);
+  border-radius: 2px;
+  color: var(--green) !important;
+  transition: background 0.3s, color 0.3s !important;
+}
+
+.nav-cta:hover {
+  background: var(--green) !important;
+  color: var(--dark) !important;
+}
+
+.nav-cta::after { display: none; }
+
+/* HERO */
+.hero {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80") center/cover;
+  filter: brightness(0.25) saturate(0.5);
+  transform: scale(1.08);
+  transition: transform 8s ease;
+}
+
+.hero-bg.loaded { transform: scale(1); }
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, var(--dark) 100%),
+              radial-gradient(ellipse at center, transparent 30%, rgba(9,11,15,0.7) 100%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(124,255,178,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,255,178,0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  padding: 0 30px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 28px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s 0.3s forwards;
+}
+
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--green);
+  opacity: 0.6;
+}
+
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUp 0.9s 0.5s forwards;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--green);
+}
+
+.hero-sub {
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 44px;
+  line-height: 1.7;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.9s 0.7s forwards;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.9s 0.9s forwards;
+}
+
+.btn-primary {
+  padding: 15px 36px;
+  background: var(--green);
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 2px;
+  cursor: none;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.2);
+  transform: translateX(-110%) skewX(-15deg);
+  transition: transform 0.4s ease;
+}
+
+.btn-primary:hover::before { transform: translateX(110%) skewX(-15deg); }
+.btn-primary:hover { box-shadow: 0 0 30px var(--green-glow); }
+
+.btn-secondary {
+  padding: 15px 36px;
+  background: transparent;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid rgba(240,240,240,0.2);
+  border-radius: 2px;
+  cursor: none;
+  transition: border-color 0.3s, color 0.3s;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(240,240,240,0.6);
+  color: var(--text);
+}
+
+.hero-scroll {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: fadeIn 1s 1.5s forwards;
+}
+
+.hero-scroll span {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scroll-line {
+  width: 1px;
+  height: 50px;
+  background: linear-gradient(to bottom, var(--green), transparent);
+  animation: scrollLine 2s ease-in-out infinite;
+}
+
+@keyframes scrollLine {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(0.3); opacity: 0.3; }
+}
+
+/* STATS BAND */
+.stats-band {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 60px;
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+  padding: 0 40px;
+  border-right: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+
+.stat:last-child { border-right: none; }
+.stat.visible { opacity: 1; transform: translateY(0); }
+
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* SECTION BASE */
+section {
+  padding: 120px 60px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 20px;
+}
+
+.label::before {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 1px;
+  background: var(--green);
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 300;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+
+.section-title em {
+  font-style: italic;
+  color: var(--green);
+}
+
+.section-sub {
+  font-size: 0.95rem;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.75;
+  margin-bottom: 60px;
+}
+
+/* SERVICES */
+#services { background: var(--dark2); }
+
+.services-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 70px;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.service-card {
+  background: var(--surface);
+  padding: 50px 40px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s, transform 0.7s, background 0.4s;
+}
+
+.service-card.visible { opacity: 1; transform: translateY(0); }
+.service-card:nth-child(2) { transition-delay: 0.1s; }
+.service-card:nth-child(3) { transition-delay: 0.2s; }
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--green);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.service-card:hover { background: var(--surface2); }
+.service-card:hover::before { transform: scaleX(1); }
+
+.service-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 30px;
+  color: var(--green);
+}
+
+.service-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 4rem;
+  font-weight: 300;
+  color: rgba(124,255,178,0.08);
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  line-height: 1;
+  transition: color 0.4s;
+}
+
+.service-card:hover .service-num { color: rgba(124,255,178,0.15); }
+
+.service-card h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+
+.service-card p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.75;
+  margin-bottom: 30px;
+}
+
+.service-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+  text-decoration: none;
+  transition: gap 0.3s;
+}
+
+.service-link:hover { gap: 14px; }
+
+/* PROJETS */
+#projets {
+  background: var(--dark);
+}
+
+.projects-header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.projects-header .section-sub { margin: 0 auto 0; }
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 320px 260px;
+  gap: 3px;
+}
+
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+}
+
+.gallery-item:first-child {
+  grid-row: 1 / 3;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.6) saturate(0.7);
+  transition: filter 0.6s ease, transform 0.6s ease;
+}
+
+.gallery-item:hover img {
+  filter: brightness(0.75) saturate(1);
+  transform: scale(1.05);
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(9,11,15,0.9) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  display: flex;
+  align-items: flex-end;
+  padding: 30px;
+}
+
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+
+.gallery-info h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+
+.gallery-info p {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.gallery-tag {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 6px 14px;
+  background: rgba(9,11,15,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+/* PROCESSUS */
+#processus {
+  background: var(--dark3);
+  position: relative;
+  overflow: hidden;
+}
+
+#processus::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(124,255,178,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.process-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+.process-visual {
+  position: relative;
+}
+
+.process-image {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 2px;
+  filter: brightness(0.5) saturate(0.6);
+}
+
+.process-badge {
+  position: absolute;
+  bottom: -30px;
+  right: -30px;
+  width: 140px;
+  height: 140px;
+  background: var(--green);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.process-badge span:first-child {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--dark);
+  line-height: 1;
+}
+
+.process-badge span:last-child {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(9,11,15,0.7);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  gap: 24px;
+  padding: 30px 0;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+
+.step.visible { opacity: 1; transform: translateX(0); }
+.step:nth-child(2) { transition-delay: 0.1s; }
+.step:nth-child(3) { transition-delay: 0.2s; }
+.step:nth-child(4) { transition-delay: 0.3s; }
+
+.step-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: var(--green);
+  font-weight: 400;
+  min-width: 28px;
+  padding-top: 3px;
+}
+
+.step h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.step p {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* TESTIMONIAL */
+.testimonial-section {
+  background: var(--dark);
+  text-align: center;
+  padding: 100px 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-section::before {
+  content: '"';
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30rem;
+  color: rgba(124,255,178,0.03);
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.testimonial-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 300;
+  font-style: italic;
+  max-width: 780px;
+  margin: 0 auto 40px;
+  line-height: 1.5;
+  color: var(--text);
+  position: relative;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.author-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.author-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.4);
+}
+
+.author-info { text-align: left; }
+
+.author-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.author-role {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* CONTACT */
+#contact {
+  background: var(--dark2);
+}
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: start;
+}
+
+.contact-info {
+  padding-top: 10px;
+}
+
+.contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.contact-item:hover {
+  border-color: rgba(124,255,178,0.3);
+  background: var(--surface2);
+}
+
+.contact-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--green-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--green);
+}
+
+.contact-item-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.contact-item-value {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* FORM */
+.contact-form { display: flex; flex-direction: column; gap: 20px; }
+
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+
+.form-group label {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.form-group input,
+.form-group textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 14px 18px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.3s, background 0.3s;
+  width: 100%;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: rgba(124,255,178,0.5);
+  background: var(--surface2);
+}
+
+.form-group textarea { height: 130px; resize: none; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.submit-btn {
+  padding: 16px 40px;
+  background: var(--green);
+  color: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 2px;
+  cursor: none;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+  align-self: flex-start;
+}
+
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.2);
+  transform: translateX(-110%) skewX(-15deg);
+  transition: transform 0.4s ease;
+}
+
+.submit-btn:hover::before { transform: translateX(110%) skewX(-15deg); }
+.submit-btn:hover { box-shadow: 0 0 30px var(--green-glow); }
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  border-top: 1px solid var(--border);
+  padding: 50px 60px;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.footer-logo span { color: var(--green); }
+
+.footer-copy {
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.footer-links {
+  display: flex;
+  gap: 30px;
+}
+
+.footer-links a {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--green); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* GREEN LINE ACCENT */
+.green-line {
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: var(--green);
+  margin-bottom: 40px;
+}
+
+/* MARQUEE BAND */
+.marquee-band {
+  background: var(--green);
+  padding: 16px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+
+.marquee-item {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dark);
+  padding: 0 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.marquee-item::after {
+  content: '✦';
+  font-size: 8px;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">Neuro<span>Habitat</span></div>
+  <ul>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#projets">Projets</a></li>
+    <li><a href="#processus">Processus</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#contact" class="nav-cta">Prendre contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Studio d'architecture — Paris, France</div>
+    <h1>Concevoir <em>l'habitat</em><br>du futur</h1>
+    <p class="hero-sub">Nous créons des espaces de vie qui fusionnent l'intelligence artificielle, l'architecture organique et la durabilité radicale.</p>
+    <div class="hero-actions">
+      <a href="#projets" class="btn-primary">Découvrir nos projets</a>
+      <a href="#contact" class="btn-secondary">Nous contacter</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-band">
+  <div class="marquee-track">
+    <span class="marquee-item">Architecture Neuronale</span>
+    <span class="marquee-item">Habitat Intelligent</span>
+    <span class="marquee-item">Design Biophilique</span>
+    <span class="marquee-item">Innovation Durable</span>
+    <span class="marquee-item">Espace de Demain</span>
+    <span class="marquee-item">Architecture Neuronale</span>
+    <span class="marquee-item">Habitat Intelligent</span>
+    <span class="marquee-item">Design Biophilique</span>
+    <span class="marquee-item">Innovation Durable</span>
+    <span class="marquee-item">Espace de Demain</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div class="stat" data-count="147">
+    <div class="stat-num" id="stat1">0</div>
+    <div class="stat-label">Projets réalisés</div>
+  </div>
+  <div class="stat" data-count="12">
+    <div class="stat-num" id="stat2">0</div>
+    <div class="stat-label">Années d'expérience</div>
+  </div>
+  <div class="stat" data-count="98">
+    <div class="stat-num" id="stat3">0</div>
+    <div class="stat-label">% de clients satisfaits</div>
+  </div>
+  <div class="stat" data-count="34">
+    <div class="stat-num" id="stat4">0</div>
+    <div class="stat-label">Prix internationaux</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-header">
+    <div>
+      <div class="label">Nos expertises</div>
+      <h2 class="section-title reveal">Ce que nous<br><em>créons pour vous</em></h2>
+    </div>
+    <p class="section-sub reveal" style="margin-bottom:0;">Notre approche multi-disciplinaire associe architecture, technologie et durabilité pour concevoir des espaces sans précédent.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+      <h3>Architecture</h3>
+      <p>Conception d'espaces contemporains qui transcendent les formes conventionnelles, adaptés aux exigences de demain.</p>
+      <a href="#" class="service-link">Explorer →</a>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+      </svg>
+      <h3>Innovation</h3>
+      <p>Intégration de systèmes domotiques avancés et d'intelligence artificielle au cœur même de l'habitat.</p>
+      <a href="#" class="service-link">Explorer →</a>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <h3>Durabilité</h3>
+      <p>Solutions écologiques certifiées qui minimisent l'empreinte carbone tout en maximisant le bien-être des occupants.</p>
+      <a href="#" class="service-link">Explorer →</a>
+    </div>
+  </div>
+</section>
+
+<!-- PROJETS -->
+<section id="projets">
+  <div class="projects-header reveal">
+    <div class="label" style="justify-content:center;">Réalisations</div>
+    <h2 class="section-title">Nos <em>projets emblématiques</em></h2>
+    <p class="section-sub">Une sélection de créations qui illustrent notre vision d'une architecture en harmonie avec l'humain et la nature.</p>
+  </div>
+  <div class="gallery-grid reveal">
+    <div class="gallery-item">
+      <span class="gallery-tag">Résidentiel</span>
+      <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80" alt="Villa Aurora">
+      <div class="gallery-overlay">
+        <div class="gallery-info">
+          <h4>Villa Aurora — Marseille</h4>
+          <p>Architecture organique · 2024</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <span class="gallery-tag">Collectif</span>
+      <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=80" alt="Tour Échos">
+      <div class="gallery-overlay">
+        <div class="gallery-info">
+          <h4>Tour Échos — Lyon</h4>
+          <p>Immeuble bioclimatique · 2023</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <span class="gallery-tag">Commercial</span>
+      <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80" alt="Campus Nexus">
+      <div class="gallery-overlay">
+        <div class="gallery-info">
+          <h4>Campus Nexus — Paris</h4>
+          <p>Espace de travail intelligent · 2025</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESSUS -->
+<section id="processus">
+  <div class="process-layout">
+    <div class="process-visual reveal">
+      <img class="process-image" src="https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a?w=800&q=80" alt="Notre processus">
+      <div class="process-badge">
+        <span>15+</span>
+        <span>Ans</span>
+      </div>
+    </div>
+    <div>
+      <div class="label">Méthodologie</div>
+      <h2 class="section-title reveal">Notre <em>processus</em><br>de création</h2>
+      <p class="section-sub reveal" style="margin-bottom:40px;">Chaque projet est une conversation entre vos aspirations et notre expertise, guidée par une rigueur méthodologique éprouvée.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div>
+            <h4>Écoute & Diagnostic</h4>
+            <p>Immersion complète dans vos besoins, contraintes et ambitions pour construire une vision partagée.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div>
+            <h4>Conception & Modélisation 3D</h4>
+            <p>Création de maquettes numériques immersives permettant de visualiser l'espace avant sa construction.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div>
+            <h4>Intégration Technologique</h4>
+            <p>Déploiement des systèmes intelligents en harmonie parfaite avec l'architecture conçue.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div>
+            <h4>Livraison & Suivi</h4>
+            <p>Accompagnement continu pour garantir que votre habitat évolue avec vous dans le temps.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<div class="testimonial-section">
+  <p class="testimonial-quote reveal">"NeuroHabitat a transformé notre vision en un espace qui dépasse tout ce que nous aurions pu imaginer. Chaque détail respire l'intelligence et la beauté."</p>
+  <div class="testimonial-author reveal">
+    <div class="author-avatar">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+    </div>
+    <div class="author-info">
+      <div class="author-name">Sophie Marchand</div>
+      <div class="author-role">Directrice Générale, Groupe Meridian</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-layout">
+    <div class="contact-info">
+      <div class="label">Parlons de votre projet</div>
+      <h2 class="section-title reveal">Ensemble,<br><em>construisons</em><br>votre futur</h2>
+      <p class="section-sub reveal" style="margin-bottom:0;">Chaque grande réalisation commence par une conversation. Partagez-nous votre vision.</p>
+      <div class="contact-items">
+        <div class="contact-item reveal">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <div class="contact-item-label">Email</div>
+            <div class="contact-item-value">contact@neurohabitat.com</div>
+          </div>
+        </div>
+        <div class="contact-item reveal">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <div>
+            <div class="contact-item-label">Téléphone</div>
+            <div class="contact-item-value">+33 02.47.43.87.90</div>
+          </div>
+        </div>
+        <div class="contact-item reveal">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div class="contact-item-label">Adresse</div>
+            <div class="contact-item-value">123 Rue de l'Avenir, Paris 75001</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <form class="contact-form reveal" onsubmit="return false;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" placeholder="Antoine">
+        </div>
+        <div class="form-group">
+          <label>Nom</label>
+          <input type="text" placeholder="Dupont">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" placeholder="antoine@exemple.com">
+      </div>
+      <div class="form-group">
+        <label>Votre projet</label>
+        <textarea placeholder="Décrivez-nous votre vision et vos besoins..."></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Envoyer le message</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Neuro<span>Habitat</span></div>
+    <div class="footer-copy">© 2026 NeuroHabitat — Tous droits réservés</div>
+    <div class="footer-links">
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="#">Instagram</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+function animateRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+document.querySelectorAll('a, button, .gallery-item, .service-card, .contact-item').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+});
+
+// NAVBAR SCROLL
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// HERO BG
+setTimeout(() => document.getElementById('heroBg').classList.add('loaded'), 100);
+
+// SCROLL REVEAL
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal, .service-card, .step, .stat').forEach(el => observer.observe(el));
+
+// COUNTER ANIMATION
+function animateCount(el, target, duration = 1800) {
+  let start = 0;
+  const step = timestamp => {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(ease * target);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  };
+  requestAnimationFrame(step);
+}
+
+const statObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const stats = document.querySelectorAll('.stat');
+      stats.forEach((s, i) => {
+        const ids = ['stat1','stat2','stat3','stat4'];
+        const vals = [147, 12, 98, 34];
+        setTimeout(() => animateCount(document.getElementById(ids[i]), vals[i]), i * 100);
+      });
+      statObserver.disconnect();
+    }
+  });
+}, { threshold: 0.5 });
+
+statObserver.observe(document.querySelector('.stats-band'));
+</script>
+</body>
+</html>
